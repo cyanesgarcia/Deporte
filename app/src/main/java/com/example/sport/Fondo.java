@@ -80,7 +80,7 @@ public class Fondo extends Activity implements View.OnClickListener {
         //empezar.setOnClickListener(this);
         pausa=(ImageButton)findViewById(R.id.imageButton2);
         //pausa.setOnClickListener(this);
-
+//
     }
 
     @Override
