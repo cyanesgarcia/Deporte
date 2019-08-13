@@ -1,6 +1,7 @@
 package com.example.sport;
 
 import android.app.Activity;
+import android.content.Context;
 import android.graphics.Color;
 import android.media.AudioAttributes;
 import android.media.SoundPool;
@@ -8,6 +9,7 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.CountDownTimer;
+import android.os.PowerManager;
 import android.support.annotation.RequiresApi;
 import android.util.Log;
 import android.view.View;
@@ -24,13 +26,19 @@ import java.util.Set;
  **/
 
 public class Fondo extends Activity implements View.OnClickListener {
+
     private MiCountDownTimer countDownTimer, countDownTimer1, countDownTimer2;
+    private CountUpTimer tiempomas;
     int[] dcolor = {R.drawable.uno, R.drawable.dos, R.drawable.tres, R.drawable.cuatro, R.drawable.cinco, R.drawable.seis, R.drawable.siete, R.drawable.ocho, R.drawable.nueve, R.drawable.diez };
     private UpdateTask updateTask;
     ImageView im;
     ImageButton empezar, pausa;
-    boolean pausar=false;
     public int s= MainActivity.numero3;
+    int boton=0;
+    int cual;
+    int start_antes_error=0;
+    int secondbreak, tipo;
+
 
     TextView textView, textView1, textView2, textView3;
     private long total=1000*(MainActivity.numero3 *(MainActivity.numero1 * MainActivity.numero2) + (MainActivity.numero3 -1) *MainActivity.numero4);
@@ -41,13 +49,15 @@ public class Fondo extends Activity implements View.OnClickListener {
     private Set<Integer> soundLoaded;
     int[]sounds={0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
     int go, stop, fin, finserie;
+    int tiempoanadir =0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fondo);
+        setContentView(R.layout.activity);
         im= (ImageView) findViewById(R.id.iblue);
         im.setImageResource(R.drawable.fondo);
+        im.setKeepScreenOn(true);
 
         textView = (TextView) findViewById(R.id.text_view);
         textView.setText(" " + (total/1000) + " ");
@@ -66,6 +76,12 @@ public class Fondo extends Activity implements View.OnClickListener {
         countDownTimer = new MiCountDownTimer(total, 1000, 0);
         countDownTimer1 = new MiCountDownTimer(tejercicio, 1000, 1);
         countDownTimer2 = new MiCountDownTimer(tdescanso, 1000, 2);
+        tiempomas = new CountUpTimer(30000) {
+            @Override
+            public void onTick(int second) {
+                tiempoanadir = second;
+            }
+        };
 
         soundLoaded = new HashSet<Integer>();
         if (updateTask != null && updateTask.getStatus() == AsyncTask.Status.FINISHED) {
@@ -76,37 +92,62 @@ public class Fondo extends Activity implements View.OnClickListener {
             updateTask.execute();
 
         }
+        boton=0;
         empezar=(ImageButton)findViewById(R.id.imageButton);
-        //empezar.setOnClickListener(this);
+        empezar.setOnClickListener(this);
         pausa=(ImageButton)findViewById(R.id.imageButton2);
-        //pausa.setOnClickListener(this);
-//
+        pausa.setOnClickListener(this);
     }
+
 
     @Override
     public void onClick(View view) {
         if(view.getId() == R.id.imageButton){
-            if(pausar==true) {
+
+            if(start_antes_error ==222) {
+                Log.i("Loooooogdespues", " value  "+ secondbreak);
+                Log.i("sss", "ss" + total);
                 countDownTimer = new MiCountDownTimer(total, 1000, 0);
                 countDownTimer.start();
+                if (cual == 10000) {
+                    Log.i("sss", "ss" + tdescanso);
+                    countDownTimer2 = new MiCountDownTimer(tdescanso, 1000, 2);
+                    countDownTimer2.start();
+                } else {
+                    Log.i("sss", "ss" + tejercicio);
+                    countDownTimer1 = new MiCountDownTimer(tejercicio, 1000, 1);
+                    countDownTimer1.start();
+                }
+                start_antes_error=0;
+                boton=1;
+            }
+        }else if(view.getId() == R.id.imageButton2){
 
-                countDownTimer1 = new MiCountDownTimer(tejercicio, 1000,1);
-                countDownTimer1.start();
+            start_antes_error = 222;
+            Log.i("Loooooogantes", " value  "+ secondbreak);
+           countDownTimer2.cancel();
+           countDownTimer1.cancel();
+           countDownTimer.cancel();
+            String ejercicio= textView1.getText().toString().trim();
+           Log.i("Tiempo ejercicio", "este   "+ejercicio);
+           Log.i("Tiempo ejercicio", " largo   "+ MainActivity.numero1 * MainActivity.numero2);
+           String general = String.valueOf(MainActivity.numero1 * MainActivity.numero2).trim();
+            if(!ejercicio.equals(general)){
+                Log.i("Tiempo ejercicio", " entro");
+                tiempomas.start();
+            }
+            boton=2;
 
-                countDownTimer2 = new MiCountDownTimer(tdescanso, 1000,2);
-                countDownTimer2.start();
-
-            }}else if(view.getId() == R.id.imageButton2){
-
-            countDownTimer.cancel();
-            countDownTimer1.cancel();
-            countDownTimer2.cancel();
-
-
-            pausar=true;
-            super.onPause();
         }
     }
+    private boolean isPause() {
+        if (boton == 2) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
     @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
     @Override
     protected void onResume() {
@@ -158,38 +199,49 @@ public class Fondo extends Activity implements View.OnClickListener {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            playSound(go);
+            while(isPause()==true){ }
             try {
                 Thread.sleep(3000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-
             for (int set=0; set<MainActivity.numero3; set++){
                 if(isCancelled()) break;
+                while(isPause()==true){}
                 if(set!=0) {
                     publishProgress(0,0,5,9);
-                    if(MainActivity.numero4>3){
-                        try {
-                            Thread.sleep((MainActivity.numero4-3) * 1000);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }}
+                    if(MainActivity.numero4>2){
+                        while(isPause()==true) {}
+                            try {
+                                Log.i("ERRRRRRORNO", "ERRRRRRoR");
+                                Thread.sleep((MainActivity.numero4 - 2) * 1000);
+                            } catch (InterruptedException e) {
+                                Log.i("ERRRRRROR", "ERRRRRRoR");
+                                e.printStackTrace();
+                            }
+
+                    }
                 }
+                while(isPause()==true){}
+                addtime();
                 playSound(go);
                 if(MainActivity.numero4==0){
+                    while(isPause()==true){ }
                     try {
-                        Thread.sleep(3000);
+                        Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
-                }
-                if(MainActivity.numero4>=3){
+                } else if(MainActivity.numero4>=2){
+                    while(isPause()==true){ }
                     try {
-                        Thread.sleep(3000);
+                        Thread.sleep(2000);
                     } catch (InterruptedException e) {
                         e.printStackTrace();
-                    }}else{
+                    }
+                }else{
+                    while(isPause()==true){ }
+
                     try {
                         Thread.sleep(MainActivity.numero4 * 1000);
                     } catch (InterruptedException e) {
@@ -199,6 +251,7 @@ public class Fondo extends Activity implements View.OnClickListener {
 
                 for (int j = 0; j < MainActivity.numero1; j++) {
                     if(isCancelled()) break;
+                    while(isPause()==true){ }
 
                     i = rnd.nextInt(MainActivity.numero0);
 
@@ -208,31 +261,46 @@ public class Fondo extends Activity implements View.OnClickListener {
                     } catch (InterruptedException e) {
                         e.printStackTrace();
                     }
+                    tiempomas.cancel();
+                    addtime2 ();
+
                 }}
             return null;
         }
 
         @Override
         protected void onProgressUpdate(Integer... values) {
+            while(isPause()==true){ }
+
             if(values[2]==0 && values[3]==0) {
-                countDownTimer.start();
+            countDownTimer.start();
             }
             if(values[3]==0){
+                tejercicio = 1000*(MainActivity.numero1 * MainActivity.numero2);
+                countDownTimer1 = new MiCountDownTimer(tejercicio, 1000,1);
                 countDownTimer1.start();
+                cual=0;
                 textView1.setBackgroundColor(Color.GREEN);
                 textView2.setBackgroundColor(Color.BLACK);
             }
+            String ejercicio= textView1.getText().toString().trim();
             if(values[1]==0) {
+                tdescanso = 1000*(MainActivity.numero4);
+                countDownTimer2 = new MiCountDownTimer(tdescanso, 1000,2);
+                countDownTimer2.start();
+                cual=10000;
                 im.setImageResource(R.drawable.fondo);
                 textView1.setBackgroundColor(Color.BLACK);
                 textView2.setBackgroundColor(Color.GREEN);
                 textView1.setText(" "+ MainActivity.numero1 * MainActivity.numero2 +" ");
+                while(isPause()==true){ }
                 if(MainActivity.numero4>2){
                     playSound(stop);
                 }
                 playSound(finserie);
-                countDownTimer2.start();
+
             }else{
+                while(isPause()==true){ }
                 im.setImageResource(dcolor[values[0]]);
                 playSound(sounds[values[0]]);
             }
@@ -242,15 +310,22 @@ public class Fondo extends Activity implements View.OnClickListener {
     }
 
     private void playSound(int soundId){
-        if(soundLoaded.contains(soundId)){
-            soundPool.play(soundId, 500.0f, 500.0f, 0,0,0f);
-        }
+      /*  if(boton == 1) {
+            addtime(secondbreak);
+            boton=3;
+        }*/
+            if (soundLoaded.contains(soundId)) {
+                soundPool.play(soundId, 500.0f, 500.0f, 0, 0, 0f);
+            }
+
+
     }
 
 
     @Override
     public void onBackPressed() {
         updateTask.cancel(true);
+        boton=0;
         Fondo.this.finish();
         super.onBackPressed();
 
@@ -265,16 +340,17 @@ public class Fondo extends Activity implements View.OnClickListener {
             n=numero;
         }
 
-        @Override
+
         public void onTick(long l) {
-            if(n==0) {
+           if(n==0) {
                 textView.setText(" "+ (int) (l / 1000)+ " ");
                 total = l;
-            }else if(n==1){
+            }
+            else if(n==1){
                 textView1.setText( " "+ (int) (l / 1000)+ " ");
                 tejercicio = l;
             }else{
-                textView2.setText(" "+ (int) (l / 1000)+ " ");
+                textView2.setText(" "+ (int) (l/ 1000)+ " ");
                 tdescanso = l;
             }
 
@@ -282,25 +358,25 @@ public class Fondo extends Activity implements View.OnClickListener {
 
         @Override
         public void onFinish() {
-            Log.i("aquiiiii", "numero "+ n);
-            if(n==0){
-                if(s==1) {
-                    im.setImageResource(R.drawable.done);
-                    playSound(fin);
-                    textView.setText(" 0 ");
-                    textView1.setText(" 0 ");
-                    textView2.setText(" 0 ");
-                }
-
-            }else if(n==1) {
+            if(n==1) {
                 s= s - 1;
                 textView3.setText(" "+ s+ " " );
                 textView1.setBackgroundColor(Color.BLACK);
 
-            } else if (n==2){
-                if(s == 1 ){
+            }
+            if((n==0) && (s==1)){
+                while(isPause()==true){ }
+                im.setImageResource(R.drawable.done);
+                    playSound(fin);
+                    textView.setText(" 0 ");
+                    textView1.setText(" 0 ");
                     textView2.setText(" 0 ");
 
+
+            }
+            if (n==2){
+                if(s == 1 ){
+                    textView2.setText(" 0 ");
                 }else {
                     textView2.setText(" " + MainActivity.numero4 + " ");
                 }
@@ -308,5 +384,66 @@ public class Fondo extends Activity implements View.OnClickListener {
         }
 
     }
+    public abstract class CountUpTimer extends CountDownTimer {
+        private static final long INTERVAL_MS = 1000;
+        private final long duration;
 
-}
+        protected CountUpTimer(long durationMs) {
+            super(durationMs, INTERVAL_MS);
+            this.duration = durationMs;
+        }
+
+        public abstract void onTick(int second);
+
+        @Override
+        public void onTick(long msUntilFinished) {
+            int second = (int) ((duration - msUntilFinished) / 1000);
+            onTick(second);
+        }
+
+        @Override
+        public void onFinish() {
+            onTick(duration / 1000);
+        }
+    }
+
+    public void addtime2 (){
+        while(isPause()==true){ }
+        Log.i("Aaaaaaaaaaa", "tiempo  " + tiempoanadir);
+
+        try {
+                Thread.sleep(tiempoanadir * 1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            tiempoanadir = 0;
+        }
+
+    public void addtime() {
+        /*int entero = MainActivity.numero4;
+        String enteroString = Integer.toString(entero);
+
+        int entero1 = (MainActivity.numero1 * MainActivity.numero2);
+        String enteroString1 = Integer.toString(entero1);
+
+        String descanso= textView2.getText().toString().trim();
+        String ejercicio= textView1.getText().toString().trim();
+        Log.i("Eeeeeeeeeeeeeeeeeeeeeee", " descanso  " + descanso);
+        Log.i("Eeeeeeeeeeeeeeeeeeeeeee", " enteroString  " + enteroString);
+        Log.i("Eeeeeeeeeeeeeeeeeeeeeee", " ejercicio  " + ejercicio);
+        Log.i("Eeeeeeeeeeeeeeeeeeeeeee", " enteroString1  " + enteroString1);
+
+        if ( !(descanso.equals(enteroString)) && ejercicio.equals(enteroString1)) {*/
+        while(isPause()==true){ }
+            Log.i("Eeeeeeeeeeeeeeeeeeeeeee", " s  " + tdescanso);
+            if(tdescanso>2500) {
+                try {
+                    Thread.sleep(tdescanso - 2500);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+    }

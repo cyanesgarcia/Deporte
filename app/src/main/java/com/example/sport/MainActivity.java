@@ -1,6 +1,7 @@
 package com.example.sport;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.AsyncTask;
@@ -36,160 +37,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
         mtextView = (TextView) findViewById(R.id.mtext_view);
         mtextView1 = (TextView) findViewById(R.id.mtext_view1);
 
-        et1.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                        updateTask1.execute();
-
-                }
-            }
-        });
-
-        et2.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-        });
-        et3.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-        });
-
-        et4.addTextChangedListener(new TextWatcher() {
-            @Override
-            public void onTextChanged(CharSequence s, int start, int before, int count) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count,
-                                          int after) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-
-            @Override
-            public void afterTextChanged(Editable s) {
-                if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
-                    updateTask1 = null;
-                }
-                else if (updateTask1 == null ) {
-                    updateTask1 = new UpdateTask();
-                    updateTask1.execute();
-
-                }
-            }
-        });
+        et1.addTextChangedListener(new addListenerOnTextChange(this, et1));
+        et2.addTextChangedListener(new addListenerOnTextChange(this, et2));
+        et3.addTextChangedListener(new addListenerOnTextChange(this, et3));
+        et4.addTextChangedListener(new addListenerOnTextChange(this, et4));
 
 
         Button button = (Button) findViewById(R.id.bfstart);
@@ -204,7 +55,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
         numero0 = Integer.parseInt(et0.getText().toString().trim());
         if(numero0==0 || numero0 > 10){
-            Toast.makeText(this, "El numero de postas tiene que estar entre 1 y 10", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "La posta tiene que estar entre 1 y 10", Toast.LENGTH_SHORT).show();
             return;
         }
         if(numero3==1){
@@ -256,11 +107,58 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
     @Override
     public void onBackPressed() {
-        updateTask1.cancel(true);
         super.onBackPressed();
 
     }
+    public class addListenerOnTextChange implements TextWatcher {
+        private Context mContext;
+        EditText mEdittextview;
+
+        public addListenerOnTextChange(Context context, EditText edittextview) {
+            super();
+            this.mContext = context;
+            this.mEdittextview= edittextview;
+        }
+
+        @Override
+        public void afterTextChanged(Editable s) {
+            if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
+                updateTask1 = null;
+            }
+            else if (updateTask1 == null ) {
+                updateTask1 = new UpdateTask();
+                updateTask1.execute();
+
+            }
+        }
+
+        @Override
+        public void beforeTextChanged(CharSequence s, int start, int count,
+                                      int after) {
+            if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
+                updateTask1 = null;
+            }
+            else if (updateTask1 == null ) {
+                updateTask1 = new UpdateTask();
+                updateTask1.execute();
+
+            }
+        }
+
+        @Override
+        public void onTextChanged(CharSequence s, int start, int before, int count) {
+            if (updateTask1 != null && updateTask1.getStatus() == AsyncTask.Status.FINISHED) {
+                updateTask1 = null;
+            }
+            else if (updateTask1 == null ) {
+                updateTask1 = new UpdateTask();
+                updateTask1.execute();
+
+            }
+        }
+    }
 }
+
 
 
 
